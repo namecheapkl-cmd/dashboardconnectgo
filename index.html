@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="googlebot" content="noindex">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.ibb.co.com/j2GntJC/pngegg.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.ibb.co.com/j2GntJC/pngegg.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co.com/j2GntJC/pngegg.png">
+  <title>Admin Dashboard</title>
+  <meta name="description" content="Admin Panel">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .hidden { display: none !important; }
+    .truncate { 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+      white-space: nowrap; 
+      max-width: 300px;
+    }
+    .modal-transition {
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .btn-hover-effect:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    .table-row-hover:hover {
+      background-color: #f9fafb;
+    }
+    .click-count {
+      font-weight: 600;
+      color: #3b82f6;
+      background: #eff6ff;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      display: inline-block;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: #10b981;
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+    .toast.error {
+      background: #ef4444;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+    }
+    .empty-state svg {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 15px;
+      color: #d1d5db;
+    }
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .action-btn.edit {
+      background-color: #f59e0b;
+      color: white;
+      margin-right: 8px;
+    }
+    .action-btn.edit:hover {
+      background-color: #d97706;
+    }
+    .action-btn.delete {
+      background-color: #ef4444;
+      color: white;
+    }
+    .action-btn.delete:hover {
+      background-color: #dc2626;
+    }
+    .action-btn.copy {
+      background-color: #6b7280;
+      color: white;
+      margin-right: 8px;
+    }
+    .action-btn.copy:hover {
+      background-color: #4b5563;
+    }
+    @media (max-width: 768px) {
+      table {
+        font-size: 0.875rem;
+      }
+      .action-btn {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+      }
+    }
+
+    /* Background dengan image */
+    body {
+      background-image: url('https://i.ibb.co.com/5xf2G5j5/pngegg-4.png-caacff5cfa74?q=80&w=2070&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      position: relative;
+    }
+
+    /* Overlay gelap agar konten lebih terbaca */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 0;
+    }
+
+    /* Pastikan konten di atas overlay */
+    #loginBox,
+    #dashboard,
+    #editModal,
+    .toast {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Membuat card lebih transparan/glass effect */
+    .bg-white {
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Khusus untuk modal biar lebih jelas */
+    #editModal .bg-white {
+      background-color: rgba(255, 255, 255, 0.98) !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- LOGIN -->
+<div id="loginBox" class="flex items-center justify-center min-h-screen">
+  <div class="bg-white p-8 rounded-xl shadow-lg w-96">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">Marshall D. Teach</h1>
+      <p class="text-gray-600 text-sm">Blackbeard</p>
+    </div>
+    <input id="password" type="password" placeholder="Yami Yami no Mi"
+      class="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      autocomplete="current-password">
+    <button onclick="login()"
+      class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition btn-hover-effect font-medium">
+      LOGIN
+    </button>
+    <p id="loginError" class="text-red-500 text-sm mt-3 text-center hidden">OM  Jujur Password salah coba lagi ya OM</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden p-6">
+  <!-- HEADER -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 bg-white p-4 rounded-lg shadow">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Shortlink Dashboard</h1>
+      <p class="text-gray-600 text-sm mt-1">Domain: <span class="font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">https://djx.connectgo.store</span></p>
+    </div>
+    <div class="mt-3 md:mt-0">
+      <button onclick="logout()"
+        class="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition btn-hover-effect">
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="bg-white p-6 rounded-lg shadow mb-6">
+    <h2 class="text-lg font-semibold mb-4 text-gray-700">Tambah Buah Iblis Baru</h2>
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Logia</label>
+        <input id="slug" placeholder="contoh-slug"
+          class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <p class="text-xs text-gray-500 mt-2">Akan menjadi: <span class="font-mono">https://djx.connectgo.store/<span id="slugPreview" class="font-semibold text-blue-600">[slug]</span></span></p>
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Paramecia</label>
+        <input id="url" placeholder="https://target.com" type="url"
+          class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      </div>
+      <div class="flex items-end">
+        <button onclick="addLink()"
+          class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition btn-hover-effect font-medium">
+          Aktifkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-gray-200 bg-gray-50">
+      <h2 class="text-lg font-semibold text-gray-700">Daftar Link</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-4 text-left font-semibold text-gray-600">Slug</th>
+            <th class="p-4 text-left font-semibold text-gray-600">URL Tujuan</th>
+            <th class="p-4 text-center font-semibold text-gray-600">Klik</th>
+            <th class="p-4 text-left font-semibold text-gray-600">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table" class="divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 modal-transition">
+  <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+    <h2 class="text-lg font-bold mb-4 text-gray-800">Edit URL</h2>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Short URL</label>
+      <p class="font-mono text-sm bg-gray-100 p-3 rounded mb-2 break-all">
+        https://djx.connectgo.store/<span id="currentSlug" class="font-bold text-blue-600"></span>
+      </p>
+    </div>
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-gray-600 mb-1">URL Tujuan Baru</label>
+      <input id="editUrl" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="https://">
+    </div>
+    <div class="flex justify-end gap-3">
+      <button onclick="closeEdit()" 
+        class="px-5 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">
+        Batal
+      </button>
+      <button onclick="saveEdit()"
+        class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+        Simpan
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
