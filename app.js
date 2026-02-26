@@ -1,4 +1,4 @@
-const API = "https://connectgo.namecheapkl.workers.dev";
+const API = "https://dashboardconnectgo.pages.dev";
 const SHORT_DOMAIN = "https://connectgo.namecheapkl.workers.dev";
 
 let TOKEN = localStorage.getItem("token");
